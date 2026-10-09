@@ -1,5 +1,19 @@
 # PROJECT_STATE.md — Enterprise QA Lab
-**Actualizado:** 2026-09-28 · **Versión:** 0.4.2 · **Estado:** SPRINT 1 — CORRECCIONES VERIFICADAS EN DEV, PENDIENTE FIJAR BUILD Y QA
+**Actualizado:** 2026-10-08 · **Versión:** 0.4.8 · **Estado:** SPRINT 1 CERRADO — QA PASS, UAT ACEPTADO, 6 HISTORIAS FINALIZADAS
+
+### Estado actual — cierre Sprint 1, 2026-10-08
+
+Informe de salida: `docs/releases/sprint1-qa-exit-report.md`; recuperación/rollback: `docs/releases/sprint1-rollback.md`. Regresión completa: Playwright 12/12 y Xray verificado en 12/12 tests y 30/30 pasos PASSED; CAT-04 incluye outage y recuperación. Unit tests 4/4, typecheck/build PASS y `npm audit` informa 0 vulnerabilidades tras actualizar `source-map-js` 1.2.1→1.2.2. Revisión básica de controles locales documentada; no fue pentest. El propietario aceptó el UAT simulado después de resolver la observación de contraseña contra BR-11. **Go/No-Go: GO para el alcance local del Sprint 1.** Jira XSP1-62…67: **Finalizada**. Siguen abiertos tres bugs Medium de muestra sin vínculo a esas historias; no son defectos encontrados en el Sprint 1. No hubo despliegue de producción.
+
+Observación UAT — XSP1-62: el propietario vio que el campo contraseña acepta espacios. Comprobado contra BR-11: los valores de contraseña no se recortan; BR-05 define longitud/requisitos y BR-06 exige coincidencia exacta. `apps/api/src/validation.test.ts` ya verifica que `" Password! "` se conserve literalmente. Comportamiento esperado, no se crea defecto ni se altera Jira. El propietario aceptó el flujo UAT.
+
+Cierre Sprint 1 — 2026-10-08: tras el UAT aprobado por el propietario, se cambiaron XSP1-62…67 a **Finalizada**. Xray XSP1-82 verificado en 12/12 tests y 30/30 pasos PASSED; Playwright 12/12; audit 0 vulnerabilidades. Go para el entorno local del laboratorio; sin release ni despliegue de producción.
+
+Xray Test Execution XSP1-82 verificado vía GraphQL: **12/12 PASSED y 30/30 pasos PASSED**. Incluye CAT-01…CAT-04, DET-01…DET-04 e IDN-01…IDN-04. Los cuatro casos de identidad se crearon y vincularon a XSP1-62…65: IDN-01 XSP1-83, IDN-02 XSP1-84, IDN-03 XSP1-85, IDN-04 XSP1-86. Corrida Playwright más reciente: 11/11 pasaron (CAT-01…03, DET-01…04, IDN-01…04; 26 pasos); CAT-04 ya constaba aprobado y permanece en Xray. En esa corrida no se repitió CAT-04 porque Windows bloqueó acceso a Docker; QA readiness respondió HTTP 200. QA `http://localhost:8081`, build `sprint1-0.1.0`.
+
+La cobertura automatizada y su sincronización con Xray están terminadas. Próximo paso: decisión del propietario sobre aceptación/cierre de Sprint 1.
+
+Importador Xray: `npm run xray:import:qa` usa el wrapper de Windows. En la primera ejecución después de este cambio pide Client ID/Secret y guarda el conjunto cifrado con DPAPI para el usuario actual en `.xray-credentials.dpapi` (ignorado por Git); ejecuciones siguientes lo reutilizan. `-ResetCredentials` permite rotarlo. Para CI, `npm run xray:import:qa:node` consume secretos desde variables de entorno.
 
 ### Registro de versión — 2026-09-28
 
@@ -75,3 +89,33 @@ Entregar build local Sprint 1 a QA y ejecutar la fase QA separadamente con sus c
 
 ## HANDOFF PARA CHAT 00
 El Sprint 1 fue autorizado posteriormente por el propietario y está implementado en DEV. El handoff vigente es `docs/releases/sprint1-dev-handoff.md`. El alcance futuro de pedidos, pagos, CRM e IA sigue fuera de esta entrega. No interpretar verificaciones DEV como aprobación QA/UAT o release aceptada.
+
+
+### Preparación de casos Xray — 2026-09-28
+
+CAT-01 fue creado por el propietario como XSP1-74, con pasos Manual y vínculo tests a XSP1-66. Se preparó docs/qa/imports/sprint1-catalog-xray.json con los siete casos restantes (16 pasos y vínculos a US-07/US-08). La carga sigue pendiente: el selector de archivos del navegador automatizado no respondió. No se crearon casos adicionales ni Test Executions ni resultados PASS/FAIL. Detalle en docs/qa/sprint1-catalog-test-design.md.
+
+Corrección del archivo Xray: el propietario informó rechazo de las siete entradas por description no textual, con issues=[]; se convirtió description a string y se validaron 7 casos / 16 pasos. Importación y verificación aún pendientes.
+
+### Retoma QA — 2026-10-08
+Según confirmación del propietario: ocho casos importados, ejecución XSP1-82, CAT-01 PASS manual sin capturas y build informada sprint1-0.1.0. Se preparó CAT-02 en tests/qa/catalog.spec.ts con configuración Playwright QA independiente, captura automática, respuesta API y contexto de ejecución. No se importaron resultados automáticos a Xray. QA localhost:8081 rechaza conexión y Docker Engine no está disponible; ejecución funcional pendiente de levantar QA. Próximo paso: ejecutar npm run test:qa -- --grep CAT-02 y revisar juntos el reporte.
+
+Resultado QA CAT-02 — 2026-10-08: `npm run test:qa -- --grep CAT-02` pasó (1/1). QA respondió en localhost:8081 con build reportada sprint1-0.1.0; API incluyó Slate Notebook con `available=false` y la UI mostró el producto, precio y estado sin stock. Playwright guardó contexto, respuesta API y captura en test-results/qa (ignorado por Git). Aún no se importó resultado a Xray XSP1-82. El comando Docker reportó acceso denegado al daemon, pero el stack QA ya estaba operativo y permitió ejecutar el test.
+
+Resultado QA CAT-03 — 2026-10-08: corrida conjunta `npm run test:qa -- --grep CAT-0[23]` pasó 2/2 (CAT-02 y CAT-03). CAT-03 confirmó que Archive Stand (inactivo) no aparece en API ni UI, y los dos productos activos se mantienen visibles. Evidencias automáticas bajo test-results/qa (ignorado por Git). Sin sincronización aún con Xray XSP1-82.
+
+Resultado QA DET-01 — 2026-10-08: corrida `npm run test:qa -- --grep CAT-0[23]|DET-01` pasó 3/3. DET-01 verificó API anónima y acceso directo al detalle público con los atributos correctos de Orbit Desk Lamp; Playwright adjuntó respuesta y captura en test-results/qa (ignorado por Git). Resultados no importados aún a Xray XSP1-82.
+
+Cierre de automatización Sprint 1 — 2026-10-08: se añadieron pruebas Playwright para CAT-02/03/04 y DET-01/02/03/04. Corrida QA completa, con CAT-04 habilitado, pasó 7/7. CAT-04 detuvo únicamente PostgreSQL del proyecto northstar-qa; restauración verificada por health/readiness HTTP 200. El reporte JUnit custom `test-results/qa/xray-junit.xml` asocia las claves XSP1-75…81, comenta ambiente/build e incrusta evidencia API/UI. Aún pendiente importar ese reporte a Xray XSP1-82: requiere Xray API Client ID/Secret, no disponibles en el entorno. `scripts/import-xray-results.ps1` ofrece prompt local y efímero para importar sin guardar secretos.
+
+Importación Xray — 2026-10-08: primer intento autenticó e inició la importación, pero Xray devolvió HTTP 400 al actualizar `customfield_10043` en XSP1-82 porque el campo no está disponible en la pantalla aplicable. Se quitó `testEnvironments` de la solicitud; el ambiente QA y el build siguen en los comentarios de cada resultado. Pendiente reintentar la importación.
+
+Reintento Xray — 2026-10-08: el mismo HTTP 400 persistió sin `testEnvironments`. Se quitó también `revision` para aislar la actualización de XSP1-82; la siguiente importación enviará únicamente el Test Execution existente y el XML de resultados. Si vuelve a fallar por `customfield_10043`, requerirá revisar la configuración de campos/pantalla de Test Execution con permisos de administrador de Jira/Xray.
+
+Importación Xray completada — 2026-10-08: tras quitar también `revision`, Xray confirmó en XSP1-82 **PASSED: 8 (100%), TESTS TOTALES: 8**. Quedaron registrados CAT-01 (PASS manual) y los siete casos Playwright automatizados CAT-02/03/04 y DET-01/02/03/04. El ambiente QA y build sprint1-0.1.0 están en el comentario de cada test run.
+
+Sincronización por paso de Xray — 2026-10-08: al revisar CAT-02 se detectó que la importación JUnit actualizaba el estado general del Test Run pero no los pasos manuales, que quedaban TODO. Se actualizó el reporter para producir Xray JSON con resultados por `test.step`, y el importador ahora usa el endpoint JSON de Xray. La suite Playwright QA completa pasó 7/7; el reporte contiene 16/16 pasos PASSED y sus evidencias globales. Pendiente reimportar en XSP1-82 y verificar los pasos en Xray.
+
+### QA identidad y sincronización Xray — 2026-10-08
+
+IDN-01…04 pasaron 4/4 y se importaron como XSP1-83…86, vinculados respectivamente a XSP1-62…65. La corrida Playwright de 11 casos (CAT-01…03, DET-01…04, IDN-01…04) pasó 11/11 y sincronizó 26 pasos. Consulta de verificación Xray confirmó en XSP1-82 los 12 casos existentes con 12/12 PASSED y 30/30 pasos PASSED, incluido CAT-04 aprobado previamente. Se añadió `npm run xray:verify:qa`; las credenciales DPAPI se reutilizan y el importador de Test Cases evita duplicar los casos ya creados.
