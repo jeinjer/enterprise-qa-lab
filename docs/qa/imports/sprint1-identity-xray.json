@@ -1,0 +1,181 @@
+[
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "IDN-01 — Register a customer and reject duplicate or mismatched data",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design",
+        "playwright"
+      ],
+      "description": "QA test mapped to XSP1-62 (US-01 Customer Registration), AC-01 through AC-06 and BR-10. Use only the isolated QA environment at http://localhost:8081. Tests create synthetic customers with unique email/DNI values. Passwords are synthetic and must not be reused. Playwright covers email confirmation mismatch, pending registration with a captured Mailpit message, and duplicate normalized email/DNI field errors. This test definition documents the Jira story; it does not change its acceptance criteria."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-62"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "Open /register, fill synthetic customer data with an email confirmation mismatch, and submit.",
+        "data": "QA: http://localhost:8081/register. Unique synthetic DNI/email; confirmation uses a different email. Playwright.",
+        "result": "Registration is rejected with an email confirmation field error; nonsensitive values remain and password fields are cleared."
+      },
+      {
+        "action": "Correct the email confirmation and submit valid registration data; inspect Mailpit.",
+        "data": "Synthetic name, valid 7–8 digit DNI, unique email, password meeting the UI rules. Mailpit: http://localhost:8026.",
+        "result": "UI shows the pending-verification message; one verification email is captured for the new account."
+      },
+      {
+        "action": "POST duplicate email and duplicate DNI registration attempts to /api/v1/auth/register.",
+        "data": "Use the successfully registered synthetic customer email/DNI, then vary one field per attempt. Include the QA Origin header.",
+        "result": "Both requests return HTTP 409 with the corresponding email or DNI field error; no duplicate account is created."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "IDN-02 — Resend and verify email with a single-use token",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design",
+        "playwright"
+      ],
+      "description": "QA test mapped to XSP1-63 (US-02 Email Verification), AC-01 through AC-05. Run only against QA at http://localhost:8081 with Mailpit at http://localhost:8026. Registration uses a unique synthetic customer. The test resends verification, rejects the invalidated prior token, follows the new link, checks account activation and authenticated session, and rejects token reuse. No Jira acceptance criteria are modified."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-63"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "Register a synthetic customer and read the captured verification token from Mailpit.",
+        "data": "QA: http://localhost:8081; Mailpit: http://localhost:8026. Unique synthetic email and DNI.",
+        "result": "Customer is pending verification and a token-bearing verification message is captured."
+      },
+      {
+        "action": "Request resend, inspect the new message, and submit the original token.",
+        "data": "POST /api/v1/auth/verification/resend then /api/v1/auth/verification/confirm with the original token.",
+        "result": "A new token is issued; the previous token is rejected with HTTP 400 and does not activate the customer."
+      },
+      {
+        "action": "Open the new verification link in a clean browser and retry the token after success.",
+        "data": "Use the new Mailpit token at /verify#token=...; inspect /api/v1/auth/session and POST the same token again.",
+        "result": "Account becomes ACTIVE, a session is created, browser redirects to public /catalog and shows the signed-in customer; token reuse is rejected."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "IDN-03 — Allow active login and reject invalid or pending credentials",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design",
+        "playwright"
+      ],
+      "description": "QA test mapped to XSP1-64 (US-03 Customer Login), AC-01 through AC-05. Run on the QA environment at http://localhost:8081. Playwright creates synthetic ACTIVE and PENDING_VERIFICATION customers through the normal email verification flow. It checks wrong password, unknown email, pending account feedback, and successful login with normalized email. Jira acceptance criteria remain unchanged."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-64"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "Attempt login with an active customer's wrong password and with an unknown email.",
+        "data": "QA /login. Synthetic unique email; one incorrect password and one unregistered email.",
+        "result": "Both attempts are denied with generic invalid-credentials feedback; password is cleared and no session is created."
+      },
+      {
+        "action": "Attempt login with a PENDING_VERIFICATION customer.",
+        "data": "Synthetic pending account and its correct password.",
+        "result": "Login is denied with verification-required feedback; no authenticated session is created and resend verification is offered."
+      },
+      {
+        "action": "Sign in with correct active credentials and whitespace/case variation in email.",
+        "data": "Synthetic ACTIVE account; valid password; email padded with spaces and uppercase letters.",
+        "result": "Email is normalized; customer is authenticated and redirected to /catalog."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "IDN-04 — Logout invalidates the session while public catalog remains available",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design",
+        "playwright"
+      ],
+      "description": "QA test mapped to XSP1-65 (US-04 Customer Logout), AC-01 and AC-02, plus the explicit Sprint 1 public-catalog access decision ADR-002. Run against QA at http://localhost:8081 using a synthetic ACTIVE customer. Verifies server-side session invalidation, denial of the old session, and continued public catalog/detail access after logout. This supplements rather than changes Jira acceptance criteria."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-65"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "Sign in as a synthetic ACTIVE customer, sign out, then query the session using the prior browser context.",
+        "data": "QA: http://localhost:8081. Browser storage must be reused for the /api/v1/auth/session check.",
+        "result": "Logout redirects to public /catalog; the old session receives HTTP 401 and the UI offers Sign in."
+      },
+      {
+        "action": "After logout, open the public catalog and an active product detail directly.",
+        "data": "GET /api/v1/products; open /catalog and /catalog/10000000-0000-4000-8000-000000000001 without authentication.",
+        "result": "Catalog API returns HTTP 200; catalog and Orbit Desk Lamp detail remain accessible to the visitor."
+      }
+    ]
+  }
+]

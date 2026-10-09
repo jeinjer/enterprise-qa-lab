@@ -1,0 +1,292 @@
+[
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "CAT-02 — Keep active zero-stock product visible as unavailable",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-66 AC-02 / BR-03.\n\nPreconditions: shared setup; notebook is active with stock=0.\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-66"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "GET http://localhost:8081/api/v1/products without a session. Locate notebook by ID.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "HTTP 200; notebook remains in products and available=false."
+      },
+      {
+        "action": "Open /catalog and locate Slate Notebook.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "Product is visible with price USD 12.50 and clearly indicates unavailable/out of stock; it is not presented as in stock."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "CAT-03 — Exclude inactive products from catalog API and UI",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-66 AC-03 / BR-01.\n\nPreconditions: shared setup; SQL confirms Archive Stand exists and active=false.\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-66"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "GET http://localhost:8081/api/v1/products. Inspect every returned product ID.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "HTTP 200; Archive Stand ID is absent; active fixtures remain present."
+      },
+      {
+        "action": "Open /catalog. Inspect the displayed catalog.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "Archive Stand does not appear; this matches the server response rather than merely hiding an API result in the UI."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "CAT-04 — Show an error when catalog retrieval fails",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-66 AC-04 / BR-04.\n\nPreconditions: shared setup; no other testing is using QA. This case intentionally interrupts QA PostgreSQL only. Keep terminal available for restoration even if an assertion fails. Do not delete containers or volumes.\n\nCleanup: restoration in step 4 is mandatory even if steps 2/3 fail. Failure-injection commands are instructions for the future execution, not commands run when creating this test.\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-66"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "Open /catalog and confirm normal fixture products load.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "Baseline catalog is available before the induced fault."
+      },
+      {
+        "action": "From the repository terminal run docker compose --env-file .env.qa -p northstar-qa stop postgres.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "Only QA PostgreSQL is stopped."
+      },
+      {
+        "action": "Reload /catalog to trigger a fresh request; inspect the page and the GET /api/v1/products response using Postman or browser network tools.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "Retrieval fails (non-2xx); UI shows a real error. No fabricated product cards and no misleading successful empty-catalog state. API error contains correlationId and does not expose SQL or stack details."
+      },
+      {
+        "action": "Always restore using docker compose --env-file .env.qa -p northstar-qa start postgres; wait for /api/v1/health/ready to return 200, then reload /catalog.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "QA is restored and the seeded active products load again."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "DET-01 — View active product detail with stock",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-67 AC-01 / BR-01, BR-02; public-access decision ADR-002.\n\nPreconditions: shared setup; lamp active, stock=12.\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-67"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "GET http://localhost:8081/api/v1/products/10000000-0000-4000-8000-000000000001 without authentication/cookies.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "HTTP 200; product ID matches lamp. Name, description, price=49.90, currency=USD and available=true match fixture data."
+      },
+      {
+        "action": "Open /catalog and follow the lamp detail link.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "/catalog/10000000-0000-4000-8000-000000000001 displays the lamp name, description, current price and in-stock availability without requiring login."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "DET-02 — View active product detail without stock",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-67 AC-01 / BR-01, BR-02; availability interpreted consistently with XSP1-66 BR-03.\n\nPreconditions: shared setup; notebook active, stock=0.\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-67"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "GET http://localhost:8081/api/v1/products/10000000-0000-4000-8000-000000000002.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "HTTP 200, not 404. Slate Notebook name/description, price=12.50, currency=USD and available=false match fixture data."
+      },
+      {
+        "action": "Open http://localhost:8081/catalog/10000000-0000-4000-8000-000000000002.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "Detail is visible with name, description, current price and clear unavailable/out-of-stock status."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "DET-03 — Deny public detail of an inactive product",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-67 AC-03 / BR-03. The implementation contract chooses 404 for inactive detail.\n\nPreconditions: shared setup; SQL confirms Archive Stand exists and active=false.\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-67"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "GET http://localhost:8081/api/v1/products/10000000-0000-4000-8000-000000000003.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "HTTP 404; error.code=PRODUCT_NOT_FOUND and nonempty correlationId; no product detail payload."
+      },
+      {
+        "action": "Open http://localhost:8081/catalog/10000000-0000-4000-8000-000000000003 directly.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "UI shows product-not-found state, not an available/purchasable Archive Stand detail."
+      }
+    ]
+  },
+  {
+    "testtype": "Manual",
+    "fields": {
+      "summary": "DET-04 — Return not-found for an unknown product identifier",
+      "project": {
+        "key": "XSP1"
+      },
+      "labels": [
+        "sprint1",
+        "qa-design"
+      ],
+      "description": "Requirement: XSP1-67 AC-02 / BR-03.\n\nPreconditions: shared setup; read-only SQL confirms unknown UUID has no row (distinct from an inactive row).\n\nShared setup\n\n- QA only: http://localhost:8081. Docker project: northstar-qa, configuration .env.qa.\n\n- The QA stack is running and seeded. Use a fresh unauthenticated browser context; in Postman select No Auth and clear cookies for localhost when checking anonymous access (No Auth alone does not remove session cookies).\n\n- Read-only fixture check in QA PostgreSQL: `SELECT id,name,description,price,currency,stock,active FROM products ORDER BY name;`.\n\n- Orbit Desk Lamp: 10000000-0000-4000-8000-000000000001; active; stock 12; USD 49.90; description \"Adjustable desk lamp for a focused workspace.\".\n\n- Slate Notebook: 10000000-0000-4000-8000-000000000002; active; stock 0; USD 12.50; description \"A durable notebook for everyday ideas.\".\n\n- Archive Stand: 10000000-0000-4000-8000-000000000003; inactive; stock 4.\n\n- Confirm unknown ID 10000000-0000-4000-8000-999999999999 has no DB row. If fixtures differ, establish the preconditions before testing rather than marking a product defect from a fixture mismatch.\n\n- Save build, environment, date, actual result and evidence separately in the eventual execution. All tests below are intended as Manual step-based Xray Tests; they can later support automation.\n\nPublic access: explicit owner decision ADR-002, not an original Jira acceptance criterion. Target source build: 74cb5df; verify running build before execution. No execution result recorded by this import."
+    },
+    "update": {
+      "issuelinks": [
+        {
+          "add": {
+            "type": {
+              "name": "Test"
+            },
+            "outwardIssue": {
+              "key": "XSP1-67"
+            }
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "action": "GET http://localhost:8081/api/v1/products/10000000-0000-4000-8000-999999999999.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "HTTP 404; error.code=PRODUCT_NOT_FOUND and nonempty correlationId; no fabricated/default product."
+      },
+      {
+        "action": "Open http://localhost:8081/catalog/10000000-0000-4000-8000-999999999999 directly.",
+        "data": "QA: http://localhost:8081. See fixture preconditions in description.",
+        "result": "UI shows product-not-found state and no product detail."
+      }
+    ]
+  }
+]
