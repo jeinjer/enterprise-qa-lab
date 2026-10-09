@@ -3,4 +3,7 @@ dist/
 .env
 .env.*
 !.env.example
+.xray-credentials.dpapi
 *.log
+test-results/
+playwright-report/
