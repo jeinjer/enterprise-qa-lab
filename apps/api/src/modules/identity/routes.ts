@@ -4,9 +4,9 @@ import argon2 from "argon2";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 import type { PoolClient } from "pg";
-import { pool } from "./db.js";
-import { config } from "./config.js";
-import { ApiError } from "./errors.js";
+import { pool } from "../../db.js";
+import { config } from "../../config.js";
+import { ApiError } from "../../errors.js";
 import { registration, login, emailInput } from "./validation.js";
 import { authenticate, cookieOptions, requireCustomer } from "./session.js";
 export const identity = Router();
@@ -60,13 +60,11 @@ identity.post("/register", async (req, res) => {
     );
     await issueToken(client, id, data.email);
     await client.query("COMMIT");
-    res
-      .status(201)
-      .json({
-        customerId: id,
-        status: "PENDING_VERIFICATION",
-        message: "Check Mailpit for your verification message.",
-      });
+    res.status(201).json({
+      customerId: id,
+      status: "PENDING_VERIFICATION",
+      message: "Check Mailpit for your verification message.",
+    });
   } catch (err: any) {
     await client.query("ROLLBACK");
     if (

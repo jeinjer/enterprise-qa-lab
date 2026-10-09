@@ -1,9 +1,9 @@
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import type { Request, Response, NextFunction } from "express";
-import { pool } from "./db.js";
-import { config } from "./config.js";
-import { ApiError } from "./errors.js";
+import { pool } from "../../db.js";
+import { config } from "../../config.js";
+import { ApiError } from "../../errors.js";
 declare module "express-session" {
   interface SessionData {
     customerId: string;

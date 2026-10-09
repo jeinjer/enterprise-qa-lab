@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { pool } from "./db.js";
-import { ApiError } from "./errors.js";
+import { pool } from "../../db.js";
+import { ApiError } from "../../errors.js";
 export const catalog = Router();
 const columns = "id,name,description,price,currency,(stock>0) AS available";
 catalog.get("/", async (_req, res) => {
