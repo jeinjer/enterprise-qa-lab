@@ -8,10 +8,10 @@ param(
 $ErrorActionPreference = 'Stop'
 
 if ($env:OS -ne 'Windows_NT') {
-  throw 'This credential helper requires Windows DPAPI. For CI, call scripts/xray-import-results.mjs with XRAY_CLIENT_ID and XRAY_CLIENT_SECRET environment variables.'
+  throw 'This credential helper requires Windows DPAPI. For CI, call scripts/xray/import-results.mjs with XRAY_CLIENT_ID and XRAY_CLIENT_SECRET environment variables.'
 }
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $credentialPath = Join-Path $repoRoot '.xray-credentials.dpapi'
 $previousClientId = $env:XRAY_CLIENT_ID
 $previousClientSecret = $env:XRAY_CLIENT_SECRET
@@ -59,9 +59,9 @@ try {
   Push-Location $repoRoot
   try {
     $importScript = switch ($Mode) {
-      'Tests' { 'scripts/xray-import-tests.mjs' }
-      'Verify' { 'scripts/xray-verify-execution.mjs' }
-      default { 'scripts/xray-import-results.mjs' }
+      'Tests' { 'scripts/xray/import-tests.mjs' }
+      'Verify' { 'scripts/xray/verify-execution.mjs' }
+      default { 'scripts/xray/import-results.mjs' }
     }
     & node $importScript
     if ($LASTEXITCODE -ne 0) { throw "Xray helper failed with exit code $LASTEXITCODE." }

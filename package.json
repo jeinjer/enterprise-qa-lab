@@ -9,12 +9,15 @@
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "npm run test -w apps/api",
+    "test:dev:integration": "node tests/dev/integration.mjs",
+    "test:dev:browser": "node tests/dev/browser.mjs",
+    "test:dev:review": "node tests/dev/review-fixes.mjs",
     "test:qa": "playwright test --config=playwright.qa.config.ts",
     "test:qa:report": "playwright show-report playwright-report/qa",
-    "xray:import:qa": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/import-xray-results.ps1",
-    "xray:import:tests:qa": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/import-xray-results.ps1 -Mode Tests",
-    "xray:verify:qa": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/import-xray-results.ps1 -Mode Verify",
-    "xray:import:qa:node": "node scripts/xray-import-results.mjs"
+    "xray:import:qa": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/xray/import-results.ps1",
+    "xray:import:tests:qa": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/xray/import-results.ps1 -Mode Tests",
+    "xray:verify:qa": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/xray/import-results.ps1 -Mode Verify",
+    "xray:import:qa:node": "node scripts/xray/import-results.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
