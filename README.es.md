@@ -1,6 +1,20 @@
 # Northstar Commerce — Enterprise QA Lab
 
-Laboratorio personal con datos sintéticos. Build `sprint1-0.1.0`: registro, verificación por correo local, sesiones, catálogo y detalle públicos. La implementación no constituye aceptación QA.
+Laboratorio personal con datos sintéticos. Build `sprint1-0.1.0`: registro, verificación por correo local, sesiones, catálogo y detalle públicos. Sprint 1 está cerrado con GO para el laboratorio local; no hubo despliegue productivo.
+
+## Mapa del repositorio
+
+| Ruta                  | Responsabilidad                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `apps/api`            | API Express; módulos de negocio en `src/modules` e infraestructura compartida en `src`   |
+| `apps/web`            | Aplicación React; rutas en `App.tsx` y páginas/componentes por feature en `src/features` |
+| `database/migrations` | Cambios versionados del esquema PostgreSQL                                               |
+| `tests/dev`           | Checks de integración, navegador y regresión focalizada para DEV                         |
+| `tests/qa`            | Escenarios Playwright y reporter de Xray                                                 |
+| `scripts/xray`        | Importación, verificación y wrapper local de credenciales Xray                           |
+| `docs`                | ADR, diseño QA, handoffs y reportes de release                                           |
+
+Mantener la lógica de cada feature junto a su módulo. La infraestructura compartida vive en la capa de aplicación; evitar dependencias entre features si alcanza con un contrato común pequeño.
 
 Requisitos: Docker Desktop / Compose y Node.js 22 para generar configuración.
 

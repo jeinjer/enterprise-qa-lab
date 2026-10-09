@@ -2,6 +2,20 @@
 
 Personal learning laboratory with synthetic data. Sprint 1 build `sprint1-0.1.0` implements registration, local email verification, sessions, public catalog and public product details. No orders, payments, integrations or public deployment are implemented.
 
+## Repository map
+
+| Path                  | Responsibility                                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `apps/api`            | Express API; feature routes under `src/modules`, shared configuration and database infrastructure at `src` |
+| `apps/web`            | React application; routes in `App.tsx`, feature pages/components under `src/features`                      |
+| `database/migrations` | Versioned PostgreSQL schema changes                                                                        |
+| `tests/dev`           | DEV stack integration, browser, and focused regression checks                                              |
+| `tests/qa`            | Playwright acceptance/regression scenarios and Xray reporter                                               |
+| `scripts/xray`        | Xray import, verification, and local credential wrapper                                                    |
+| `docs`                | Architecture decisions, QA design, handoffs, and release records                                           |
+
+Keep a feature's UI or API behavior with that feature. Put shared infrastructure in the app-level layer; avoid cross-feature imports when a small shared contract is enough.
+
 ## Local startup
 
 Requires Docker Desktop / Docker Compose and Node.js 22 for the configuration helper. PostgreSQL runs inside Docker.
@@ -26,11 +40,15 @@ npm ci
 npm run typecheck
 npm run build
 npm test
-node tests/dev-integration.mjs
-node tests/dev-browser.mjs
+npm run test:dev:integration
+npm run test:dev:browser
+npm run test:dev:review
+npm run test:qa
 ```
 
 Integration checks create synthetic accounts and restart the API. Browser checks require local Google Chrome, capture screenshots and temporarily stop/restart DEV PostgreSQL. Run them against the disposable DEV stack only, without other active work. They are DEV checks, not QA acceptance or regression sign-off.
+
+`test:qa` targets the separately configured local QA stack. The suite includes a controlled PostgreSQL outage check; use only the disposable QA environment and avoid running other tests against it at the same time.
 
 Shutdown without deleting data: `docker compose down`. On startup, the API applies tracked SQL migrations and idempotent product inserts. Secrets and local environment files are ignored by Git.
 
